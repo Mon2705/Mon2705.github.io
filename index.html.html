@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เครื่องมือวิเคราะห์หวยลาวพัฒนา (แสดงเลขตรวจในรูป)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" xintegrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoVBL5gI9kDXrdEMJODZay09pIQoqw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Link to Manifest file -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+        }
+        .highlight-number {
+            background-color: #fefce8; /* yellow-50 */
+            color: #854d0e; /* yellow-800 */
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            margin: 2px;
+            display: inline-block;
+            border: 1px solid #fef08a; /* yellow-200 */
+            transition: all 0.2s ease-in-out;
+        }
+        .highlight-match {
+            border: 2px solid #ef4444; /* red-500 */
+            border-radius: 9999px; /* rounded-full */
+            background-color: #fee2e2 !important; /* red-100 */
+            color: #b91c1c !important; /* red-800 */
+            transform: scale(1.1);
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen p-4 sm:p-6 lg:p-8">
+
+    <main class="max-w-7xl mx-auto">
+        <div class="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6 mb-6">
+            <h1 class="text-2xl sm:text-3xl font-bold text-center text-indigo-600 dark:text-indigo-400 mb-2">เครื่องมือวิเคราะห์หวยลาวพัฒนา (แสดงเลขตรวจในรูป)</h1>
+            <p class="text-center text-gray-500 dark:text-gray-400 mb-6">กรอกเลข 4 ตัว เพื่อคำนวณและบันทึกผลเพื่อใช้ตรวจรางวัล</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start mb-6">
+                <div>
+                    <label for="lotto-number" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ผลหวยลาว 4 ตัว (เช่น 2528)</label>
+                    <input type="text" id="lotto-number" inputmode="numeric" pattern="[0-9]*" maxlength="4" class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-lg" placeholder="กรอกเลข 4 หลัก">
+                </div>
+                <div>
+                    <label for="lotto-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">เลือกวัน/เดือน/ปี</label>
+                    <input type="date" id="lotto-date" class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-lg">
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4">
+                <button id="calculate-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200 text-lg">คำนวณผล</button>
+                <button id="clear-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200 text-lg">ล้างข้อมูล</button>
+            </div>
+        </div>
+
+        <div id="results-container" class="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6 hidden">
+            <div class="text-center mb-6 flex flex-wrap justify-center gap-4">
+                <button id="save-result-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-5 rounded-lg transition-colors duration-200 inline-flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V4zm3 0a1 1 0 00-1 1v1.5a.5.5 0 00.5.5h5a.5.5 0 00.5-.5V5a1 1 0 00-1-1H8z" /></svg>
+                    บันทึกผลการคำนวณนี้
+                </button>
+            </div>
+            <div id="capture-area">
+                <h2 class="text-xl sm:text-2xl font-bold text-center mb-4">ผลการคำนวณ</h2>
+                <div class="space-y-6">
+                    <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-700 text-center">
+                        <div class="mb-3"><h3 class="font-bold text-lg mb-2 text-teal-500 dark:text-teal-400">เลขเทียบ</h3><p id="result-compare" class="text-2xl font-bold"></p></div>
+                        <hr class="border-gray-200 dark:border-gray-600 my-3">
+                        <div><h3 class="font-bold text-lg mb-2 text-indigo-500 dark:text-indigo-400">เลขเด่น</h3><p id="result-den" class="text-3xl font-bold"></p></div>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <h3 class="font-bold text-lg mb-3 text-indigo-500 dark:text-indigo-400 text-center">ชุดเลขเด่น</h3>
+                        <div id="result-den-sets" class="space-y-2 text-lg text-center"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative my-4" role="alert"><strong class="font-bold">เกิดข้อผิดพลาด!</strong> <span id="error-text"></span></div>
+
+        <div class="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6 mt-6">
+            <div class="flex flex-wrap justify-between items-center mb-4 gap-4">
+                <h2 class="text-xl sm:text-2xl font-bold">ผลการคำนวณที่บันทึกไว้</h2>
+                <button id="clear-saved-results-btn" class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 font-bold py-2 px-4 rounded-lg text-sm">ล้างผลที่บันทึกไว้ทั้งหมด</button>
+            </div>
+            <div id="saved-results-list" class="grid grid-cols-1 lg:grid-cols-2 gap-6"></div>
+        </div>
+    </main>
+
+    <!-- Register the Service Worker -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').then(registration => {
+            console.log('ServiceWorker registration successful');
+          }, err => {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+        });
+      }
+    </script>
+
+    <script>
+        // --- DOM Elements ---
+        const lottoNumberInput = document.getElementById('lotto-number');
+        const lottoDateInput = document.getElementById('lotto-date');
+        const calculateBtn = document.getElementById('calculate-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const resultsContainer = document.getElementById('results-container');
+        const errorContainer = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        const resultCompare = document.getElementById('result-compare');
+        const resultDen = document.getElementById('result-den');
+        const resultDenSets = document.getElementById('result-den-sets');
+        const saveResultBtn = document.getElementById('save-result-btn');
+        const savedResultsList = document.getElementById('saved-results-list');
+        const clearSavedResultsBtn = document.getElementById('clear-saved-results-btn');
+
+        // --- Data & Constants ---
+        const numberSet1 = ['03', '04', '05', '06', '07', '14', '15', '16', '17', '18', '24', '25', '26', '27', '28', '29', '30', '36', '37', '38', '39', '40', '41', '42', '47', '48', '49', '50', '51', '52', '58', '59', '60', '61', '62', '63', '68', '69', '70', '71', '72', '73', '74', '81', '82', '83', '84', '85', '86', '92', '93', '94', '95', '96'];
+        const compareMap = { '1': '5-6-8-9-0', '2': '6-7-9-0-1', '3': '7-8-0-1-2', '4': '8-9-1-2-3', '5': '9-0-2-3-4', '6': '0-1-3-4-5', '7': '1-2-4-5-6', '8': '2-3-5-6-7', '9': '3-4-6-7-8', '0': '4-5-7-8-9' };
+        
+        // --- App State ---
+        let savedResults = [];
+        let lastCalculationResult = null;
+        const SAVED_RESULTS_STORAGE_KEY = 'laoSavedResults_interactive_v5';
+
+        // --- Core Functions ---
+        function showError(message) { errorText.textContent = message; errorContainer.classList.remove('hidden'); }
+        function hideError() { errorContainer.classList.add('hidden'); }
+        function clearAll() { lottoNumberInput.value = ''; resultsContainer.classList.add('hidden'); lastCalculationResult = null; hideError(); }
+        
+        function calculate() {
+            hideError();
+            const numberStr = lottoNumberInput.value;
+            if (numberStr.length !== 4 || !/^\d{4}$/.test(numberStr)) { return showError('กรุณากรอกเลข 4 หลักให้ถูกต้อง'); }
+
+            const unitDigit = numberStr[3];
+            const compareResult = compareMap[unitDigit];
+            resultCompare.innerHTML = `<span class="font-bold text-teal-600">${unitDigit}</span> = <span class="font-bold text-teal-600">${compareResult}</span>`;
+
+            const hundreds = parseInt(numberStr[1], 10);
+            const units = parseInt(numberStr[3], 10);
+            const sum = (hundreds + units) % 10;
+            const lekDen = [sum, (sum - 1 + 10) % 10, (sum + 1) % 10];
+            const lekDenStr = lekDen.map(String);
+            resultDen.textContent = lekDen.join(' - ');
+
+            const denSetsHTML = lekDenStr.map(denDigit => {
+                const matchingNumbers = numberSet1.filter(num => num.startsWith(denDigit));
+                if (matchingNumbers.length === 0) return '';
+                const numbersHTML = matchingNumbers.map(num => `<span class="highlight-number">${num}</span>`).join('');
+                return `<div class="flex items-center justify-center flex-wrap"><span class="font-bold mr-2">${denDigit} =</span>${numbersHTML}</div>`;
+            }).join('');
+            resultDenSets.innerHTML = denSetsHTML;
+
+            lastCalculationResult = {
+                id: `${numberStr}-${lottoDateInput.value}-${Date.now()}`,
+                inputNumber: numberStr,
+                date: lottoDateInput.value,
+                compareDigit: unitDigit,
+                compareResult: compareResult,
+                den: lekDen.join(' - '),
+                denSetsData: lekDenStr.map(denDigit => ({ denDigit, matchingNumbers: numberSet1.filter(num => num.startsWith(denDigit)) })),
+                lastCheck: null
+            };
+            resultsContainer.classList.remove('hidden');
+        }
+
+        function formatThaiDate(dateString) {
+            if (!dateString) return 'ไม่ระบุวันที่';
+            const thaiDays = ["อา.", "จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส."];
+            const months = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+            const date = new Date(dateString + 'T00:00:00');
+            return `(${thaiDays[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]} ${(date.getFullYear() + 543) % 100})`;
+        }
+
+        function createResultCardElement(item) {
+            const card = document.createElement('div');
+            card.className = 'saved-result-card bg-green-50 dark:bg-gray-800 border border-green-200 dark:border-gray-700 rounded-lg p-4 flex flex-col gap-3 shadow-sm';
+            card.dataset.id = item.id;
+
+            let denSetsHTML = item.denSetsData.map(set => {
+                if (set.matchingNumbers.length === 0) return '';
+                const numbersHTML = set.matchingNumbers.map(num => `<span class="highlight-number result-number-span">${num}</span>`).join('');
+                return `<div class="flex items-start justify-center flex-wrap text-center"><span class="font-bold mr-2 mt-2">${set.denDigit} =</span><div class="flex flex-wrap justify-center">${numbersHTML}</div></div>`;
+            }).join('');
+
+            card.innerHTML = `
+                <div class="card-header flex justify-between items-start">
+                    <div>
+                        <p class="font-semibold text-gray-800 dark:text-gray-200">ผลของเลข: <span class="font-bold text-blue-700 dark:text-blue-400">${item.inputNumber}</span></p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">${formatThaiDate(item.date)}</p>
+                    </div>
+                    <button class="delete-btn p-2 text-red-500 hover:bg-red-200 dark:hover:bg-red-800/60 rounded-full" title="ลบรายการนี้"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg></button>
+                </div>
+                <div class="calculation-body text-center space-y-2 p-3 rounded-md bg-white dark:bg-gray-700/50">
+                    <p class="text-sm">เลขเทียบ <span class="font-bold text-teal-600">${item.compareDigit}</span> = <span class="font-bold text-teal-600">${item.compareResult}</span></p>
+                    <p class="text-sm">เลขเด่น: <span class="font-bold text-indigo-600">${item.den}</span></p>
+                    <hr class="border-gray-200 dark:border-gray-600 my-2">
+                    <div class="den-sets-display space-y-2 text-lg">${denSetsHTML}</div>
+                </div>
+                <div class="actions-footer border-t border-gray-300 dark:border-gray-700 pt-3 flex flex-col gap-3">
+                    <div class="flex gap-2 items-center">
+                         <input type="text" placeholder="เลขตรวจ 4 ตัว" maxlength="4" inputmode="numeric" class="check-input w-full px-3 py-1.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-1 focus:ring-indigo-500 text-base">
+                         <button class="check-btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-1.5 px-3 rounded-md transition-colors">ตรวจ</button>
+                         <button class="reset-check-btn bg-gray-400 hover:bg-gray-500 text-white font-bold py-1.5 px-3 rounded-md transition-colors">ล้าง</button>
+                    </div>
+                    <button class="download-img-btn bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition-colors text-sm">ดาวน์โหลดรูป</button>
+                </div>`;
+            return card;
+        }
+
+        function renderSavedResults() {
+            savedResultsList.innerHTML = '';
+            if (savedResults.length === 0) { return savedResultsList.innerHTML = `<p class="text-center text-gray-500 italic col-span-full">ยังไม่มีผลลัพธ์ที่บันทึกไว้</p>`; }
+            savedResults.sort((a, b) => new Date(b.date) - new Date(a.date));
+            for (const item of savedResults) {
+                const cardElement = createResultCardElement(item);
+                savedResultsList.appendChild(cardElement);
+                if (item.lastCheck && item.lastCheck.checkingNumber) {
+                    const checkInput = cardElement.querySelector('.check-input');
+                    checkInput.value = item.lastCheck.checkingNumber;
+                    const numberSpans = cardElement.querySelectorAll('.result-number-span');
+                    numberSpans.forEach(span => { if (item.lastCheck.highlightedNumbers.includes(span.textContent)) { span.classList.add('highlight-match'); } });
+                }
+            }
+        }
+
+        function saveSavedResultsToStorage() { localStorage.setItem(SAVED_RESULTS_STORAGE_KEY, JSON.stringify(savedResults)); }
+        function loadSavedResultsFromStorage() { const data = localStorage.getItem(SAVED_RESULTS_STORAGE_KEY); savedResults = data ? JSON.parse(data) : []; }
+
+        function handleSaveResult() {
+            if (!lastCalculationResult) { return alert("กรุณาคำนวณผลก่อนบันทึก"); }
+            if (savedResults.some(res => res.id === lastCalculationResult.id)) { return alert("ผลลัพธ์นี้ถูกบันทึกไว้แล้ว"); }
+            saveResultBtn.disabled = true; saveResultBtn.textContent = 'กำลังบันทึก...';
+            try {
+                savedResults.unshift(lastCalculationResult);
+                saveSavedResultsToStorage();
+                renderSavedResults();
+                alert("บันทึกผลการคำนวณเรียบร้อยแล้ว");
+            } catch (error) {
+                console.error("Error saving result:", error); alert("เกิดข้อผิดพลาดในการบันทึก");
+            } finally {
+                saveResultBtn.disabled = false; saveResultBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V4zm3 0a1 1 0 00-1 1v1.5a.5.5 0 00.5.5h5a.5.5 0 00.5-.5V5a1 1 0 00-1-1H8z" /></svg> บันทึกผลการคำนวณนี้`;
+            }
+        }
+
+        calculateBtn.addEventListener('click', calculate);
+        clearBtn.addEventListener('click', clearAll);
+        saveResultBtn.addEventListener('click', handleSaveResult);
+        clearSavedResultsBtn.addEventListener('click', () => { if (confirm('คุณต้องการล้างผลการคำนวณที่บันทึกไว้ทั้งหมดใช่หรือไม่?')) { savedResults = []; localStorage.removeItem(SAVED_RESULTS_STORAGE_KEY); renderSavedResults(); } });
+
+        savedResultsList.addEventListener('click', (e) => {
+            const card = e.target.closest('.saved-result-card');
+            if (!card) return;
+            const id = card.dataset.id;
+            const savedItem = savedResults.find(r => r.id === id);
+            if (!savedItem) return;
+
+            if (e.target.closest('.delete-btn')) {
+                if (confirm('คุณต้องการลบผลการคำนวณนี้ใช่หรือไม่?')) {
+                    savedResults = savedResults.filter(item => item.id !== id);
+                    saveSavedResultsToStorage();
+                    renderSavedResults();
+                }
+            } else if (e.target.closest('.download-img-btn')) {
+                const contentToCapture = card.querySelector('.calculation-body');
+                const headerToCapture = card.querySelector('.card-header');
+                const checkInputValue = card.querySelector('.check-input').value;
+
+                if (contentToCapture && headerToCapture) {
+                    const tempContainer = document.createElement('div');
+                    tempContainer.style.width = card.offsetWidth + 'px';
+                    tempContainer.style.padding = '1rem';
+                    tempContainer.style.backgroundColor = '#f0fff4';
+                    tempContainer.style.fontFamily = "'Sarabun', sans-serif";
+                    
+                    const headerClone = headerToCapture.cloneNode(true);
+                    headerClone.querySelector('.delete-btn').style.display = 'none';
+                    tempContainer.appendChild(headerClone);
+                    
+                    if (checkInputValue) {
+                        const checkInfo = document.createElement('p');
+                        checkInfo.className = 'font-semibold text-gray-800 text-lg text-center mt-2';
+                        checkInfo.innerHTML = `เลขที่นำมาตรวจ: <span class="font-bold text-red-600">${checkInputValue}</span>`;
+                        tempContainer.appendChild(checkInfo);
+                    }
+                    tempContainer.appendChild(contentToCapture.cloneNode(true));
+                    
+                    tempContainer.style.position = 'absolute'; tempContainer.style.left = '-9999px';
+                    document.body.appendChild(tempContainer);
+
+                    html2canvas(tempContainer, { scale: 2, useCORS: true }).then(canvas => {
+                        const link = document.createElement('a');
+                        link.href = canvas.toDataURL('image/png');
+                        link.download = `ผลตรวจ-${savedItem.inputNumber}-${savedItem.date}.png`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        document.body.removeChild(tempContainer);
+                    }).catch(err => {
+                        console.error("Error generating image:", err);
+                        alert('เกิดข้อผิดพลาดในการสร้างรูปภาพ');
+                        document.body.removeChild(tempContainer);
+                    });
+                }
+            } else if (e.target.closest('.check-btn')) {
+                const checkInput = card.querySelector('.check-input');
+                const checkingNumber = checkInput.value;
+                if (checkingNumber.length !== 4 || !/^\d{4}$/.test(checkingNumber)) { return alert('กรุณากรอกเลข 4 หลักสำหรับตรวจผล'); }
+                
+                const frontPair = checkingNumber.substring(0, 2);
+                const backPair = checkingNumber.substring(2, 4);
+                const numbersToCheck = [frontPair, frontPair.split('').reverse().join(''), backPair, backPair.split('').reverse().join('')];
+                const highlightedNumbers = [];
+                const numberSpans = card.querySelectorAll('.result-number-span');
+                numberSpans.forEach(span => {
+                    if (numbersToCheck.includes(span.textContent)) {
+                        span.classList.add('highlight-match');
+                        highlightedNumbers.push(span.textContent);
+                    } else {
+                        span.classList.remove('highlight-match');
+                    }
+                });
+                savedItem.lastCheck = { checkingNumber: checkingNumber, highlightedNumbers: highlightedNumbers };
+                saveSavedResultsToStorage();
+            } else if (e.target.closest('.reset-check-btn')) {
+                card.querySelector('.check-input').value = '';
+                card.querySelectorAll('.result-number-span').forEach(span => span.classList.remove('highlight-match'));
+                savedItem.lastCheck = null;
+                saveSavedResultsToStorage();
+            }
+        });
+
+        window.onload = function() {
+            const today = new Date();
+            lottoDateInput.value = today.toISOString().split('T')[0];
+            loadSavedResultsFromStorage();
+            renderSavedResults();
+        };
+    </script>
+</body>
+</html>
